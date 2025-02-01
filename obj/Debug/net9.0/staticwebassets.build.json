@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "72mqJi6m2hmhht9tVQi1nIFOfCo2q2RtuvH4t9aYRO4=",
+  "Source": "PaymentNotificationsAPI",
+  "BasePath": "_content/PaymentNotificationsAPI",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
