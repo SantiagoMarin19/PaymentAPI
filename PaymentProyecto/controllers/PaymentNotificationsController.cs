@@ -56,7 +56,7 @@ namespace PaymentNotificationsAPI.Controllers
                 var stripeEvent = EventUtility.ConstructEvent(
                     json,
                     Request.Headers["Stripe-Signature"],
-                    "whsec_iVFPSRyLguRBQ2M8gAvnfQJLOVWwTydq" // Reemplaza con tu WebhookSecret
+                    "whsec_iVFPSRyLguRBQ2M8gAvnfQJLOVWwTydq" 
                 );
 
                 if (stripeEvent.Type == "payment_intent.succeeded")
@@ -96,5 +96,37 @@ namespace PaymentNotificationsAPI.Controllers
                 return StatusCode(500, $"Internal server error: {e.Message}");
             }
         }
+        // GET: api/PaymentNotifications/testconnection
+        [HttpGet("testconnection")]
+        public async Task<IActionResult> TestDatabaseConnection()
+        {
+            try
+            {
+                // Crear un registro de prueba
+                var testNotification = new PaymentNotification
+                {
+                    FechaHora = DateTime.UtcNow,
+                    TransaccionID = "test_transaction",
+                    Estado = "test_status",
+                    Monto = 0.0m,
+                    Banco = "test_bank",
+                    MetodoPago = "test_method"
+                };
+
+                _context.PaymentNotifications.Add(testNotification);
+                await _context.SaveChangesAsync();
+
+                // Eliminar el registro de prueba
+                _context.PaymentNotifications.Remove(testNotification);
+                await _context.SaveChangesAsync();
+
+                return Ok("La conexion a la base de datos es exitosa.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Conexion a base de datos fallida: {ex.Message}");
+            }
+        }
     }
 }
+        

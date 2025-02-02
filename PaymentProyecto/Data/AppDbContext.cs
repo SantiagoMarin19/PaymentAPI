@@ -10,5 +10,13 @@ namespace PaymentNotificationsAPI.Data
 
         // Constructor que recibe las opciones de configuración
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<PaymentNotification>(entity =>
+            {
+                entity.Property(e => e.Monto).HasColumnType("decimal(18,2)");
+            });
+        }
     }
 }
