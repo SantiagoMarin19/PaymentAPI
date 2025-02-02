@@ -4,6 +4,9 @@ using PaymentNotificationsAPI.Data;
 using PaymentNotificationsAPI.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Stripe;
+using System.IO;
+using System;
 
 namespace PaymentNotificationsAPI.Controllers
 {
@@ -40,17 +43,58 @@ namespace PaymentNotificationsAPI.Controllers
 
         // POST: api/PaymentNotifications/webhook/payments
         [HttpPost("webhook/payments")]
-        public async Task<IActionResult> ReceivePaymentNotification([FromBody] PaymentNotification notification)
+        public async Task<IActionResult> ReceivePaymentNotification()
         {
-            if (notification == null)
+            var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+            if (string.IsNullOrEmpty(json))
             {
                 return BadRequest("Invalid notification.");
             }
 
-            _context.PaymentNotifications.Add(notification);
-            await _context.SaveChangesAsync();
+            try
+            {
+                var stripeEvent = EventUtility.ConstructEvent(
+                    json,
+                    Request.Headers["Stripe-Signature"],
+                    "whsec_iVFPSRyLguRBQ2M8gAvnfQJLOVWwTydq" // Reemplaza con tu WebhookSecret
+                );
 
-            return Ok("Notification received successfully.");
+                if (stripeEvent.Type == "payment_intent.succeeded")
+                {
+                    var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
+                    if (paymentIntent == null)
+                    {
+                        return BadRequest("Invalid PaymentIntent.");
+                    }
+
+                    var notification = new PaymentNotification
+                    {
+                        FechaHora = DateTime.UtcNow,
+                        TransaccionID = paymentIntent.Id,
+                        Estado = paymentIntent.Status,
+                        Monto = paymentIntent.Amount / 100m, // Convertir a unidades monetarias
+                        Banco = "Stripe",
+                        MetodoPago = paymentIntent.PaymentMethodId
+                    };
+
+                    _context.PaymentNotifications.Add(notification);
+                    await _context.SaveChangesAsync();
+
+                    return Ok("Notification received successfully.");
+                }
+                else
+                {
+                    return BadRequest("Unhandled event type.");
+                }
+            }
+            catch (StripeException e)
+            {
+                return BadRequest($"Stripe exception: {e.Message}");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Internal server error: {e.Message}");
+            }
         }
     }
 }
