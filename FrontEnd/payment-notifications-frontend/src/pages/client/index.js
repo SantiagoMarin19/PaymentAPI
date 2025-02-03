@@ -8,9 +8,12 @@ import {
   Grid,
   CircularProgress,
   Alert,
-  Box
+  Box,
+  IconButton,
+  TextField,
+  InputAdornment
 } from '@mui/material';
-import { CheckCircle, Schedule } from '@mui/icons-material';
+import { CheckCircle, Schedule, Refresh, Home, Dashboard, Search } from '@mui/icons-material';
 
 function NotificationList({ notifications }) {
   const navigateToDetail = (id) => {
@@ -44,18 +47,24 @@ function NotificationList({ notifications }) {
               {notification.transaccionID}
             </Typography>
             <Typography color="text.secondary">
-              {notification.banco}
+              Banco: {notification.banco}
+            </Typography>
+            <Typography color="text.secondary">
+              Fecha: {new Date(notification.fechaHora).toLocaleDateString()}
+            </Typography>
+            <Typography color="text.secondary">
+              Estado: {notification.estado}
             </Typography>
           </Grid>
           <Grid item>
             <Typography variant="h5" component="div">
-              €{notification.monto}
-            </Typography>
-            <Typography color="text.secondary">
-              {new Date(notification.fechaHora).toLocaleDateString()}
+              Monto: €{notification.monto}
             </Typography>
           </Grid>
         </Grid>
+        <Typography variant="body2" color="text.secondary" mt={2}>
+          Para tener más detalle, presione sobre la transacción que quieres ver.
+        </Typography>
       </CardContent>
     </Card>
   ));
@@ -63,23 +72,34 @@ function NotificationList({ notifications }) {
 
 export default function ClientHome() {
   const [notifications, setNotifications] = useState([]);
+  const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await axios.get('http://localhost:5001/api/PaymentNotifications');
+      console.log(response.data); // Verificar la respuesta de la API
+      setNotifications(response.data.notifications);
+      setFilteredNotifications(response.data.notifications);
+      setLoading(false);
+    } catch (error) {
+      setError('Error al cargar las notificaciones');
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchNotifications() {
-      try {
-        const response = await axios.get('http://localhost:5001/api/PaymentNotifications');
-        console.log(response.data); // Verificar la respuesta de la API
-        setNotifications(response.data.notifications);
-        setLoading(false);
-      } catch (error) {
-        setError('Error al cargar las notificaciones');
-        setLoading(false);
-      }
-    }
     fetchNotifications();
   }, []);
+
+  useEffect(() => {
+    const results = notifications.filter(notification =>
+      notification.transaccionID.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredNotifications(results);
+  }, [searchTerm, notifications]);
 
   if (error) {
     return (
@@ -91,16 +111,48 @@ export default function ClientHome() {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Catálogo de Notificaciones de Pagos
-      </Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Catálogo de Notificaciones de Pagos
+        </Typography>
+        <Box>
+          <IconButton color="primary" onClick={fetchNotifications}>
+            <Refresh />
+          </IconButton>
+          <IconButton color="primary" onClick={() => window.location.href = '/'}>
+            <Home />
+          </IconButton>
+          <IconButton color="primary" onClick={() => window.location.href = '/admin'}>
+            <Dashboard />
+          </IconButton>
+        </Box>
+      </Box>
+      
+      <TextField
+        label="Buscar por ID de Transacción"
+        variant="outlined"
+        fullWidth
+        margin="normal"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <Search />
+            </InputAdornment>
+          ),
+        }}
+        sx={{ mb: 4 }}
+      />
       
       {loading ? (
         <Box display="flex" justifyContent="center" my={4}>
           <CircularProgress />
         </Box>
       ) : (
-        <NotificationList notifications={notifications} />
+        <Grid container spacing={3}>
+          <NotificationList notifications={filteredNotifications} />
+        </Grid>
       )}
     </Container>
   );

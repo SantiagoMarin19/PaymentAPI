@@ -10,9 +10,10 @@ import {
   CircularProgress,
   Alert,
   Box,
-  Paper
+  Paper,
+  IconButton
 } from '@mui/material';
-import { CheckCircle, Schedule } from '@mui/icons-material';
+import { CheckCircle, Schedule, Refresh, Home, Dashboard } from '@mui/icons-material';
 
 export default function NotificationDetailPage() {
   const router = useRouter();
@@ -65,6 +66,19 @@ export default function NotificationDetailPage() {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Detalle de Notificación
+        </Typography>
+        <Box>
+          <IconButton color="primary" onClick={() => window.location.href = '/'}>
+            <Home />
+          </IconButton>
+          <IconButton color="primary" onClick={() => window.location.href = '/client'}>
+            <Dashboard />
+          </IconButton>
+        </Box>
+      </Box>
       <Card>
         <CardContent>
           <Box display="flex" alignItems="center" mb={3}>
