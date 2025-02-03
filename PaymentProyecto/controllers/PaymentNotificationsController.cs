@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PaymentNotificationsAPI.Data;
 using PaymentNotificationsAPI.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Stripe;
 using System.IO;
@@ -15,11 +16,13 @@ namespace PaymentNotificationsAPI.Controllers
     public class PaymentNotificationsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly LogService _logService;
         private readonly string _logFolder = "Logs";
 
-        public PaymentNotificationsController(AppDbContext context)
+        public PaymentNotificationsController(AppDbContext context, LogService logService)
         {
             _context = context;
+            _logService = logService;
 
             // Crear el directorio de logs si no existe
             if (!Directory.Exists(_logFolder))
@@ -30,10 +33,51 @@ namespace PaymentNotificationsAPI.Controllers
 
         // GET: api/PaymentNotifications
         [HttpGet]
-        public async Task<IActionResult> GetAllNotifications()
+        public async Task<IActionResult> GetAllNotifications(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string transactionId = null,
+            [FromQuery] string status = null,
+            [FromQuery] DateTime? startDate = null,
+            [FromQuery] DateTime? endDate = null)
         {
-            var notifications = await _context.PaymentNotifications.ToListAsync();
-            return Ok(notifications);
+            var query = _context.PaymentNotifications.AsQueryable();
+
+            if (!string.IsNullOrEmpty(transactionId))
+            {
+                query = query.Where(n => n.TransaccionID.Contains(transactionId));
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(n => n.Estado == status);
+            }
+
+            if (startDate.HasValue)
+            {
+                query = query.Where(n => n.FechaHora >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                query = query.Where(n => n.FechaHora <= endDate.Value);
+            }
+
+            var totalRecords = await query.CountAsync();
+            var notifications = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var result = new
+            {
+                TotalRecords = totalRecords,
+                Page = page,
+                PageSize = pageSize,
+                Notifications = notifications
+            };
+
+            return Ok(result);
         }
 
         // GET: api/PaymentNotifications/5

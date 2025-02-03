@@ -66,6 +66,10 @@
               "target": "Package",
               "version": "[9.0.1, )"
             },
+            "Microsoft.IdentityModel.Tokens": {
+              "target": "Package",
+              "version": "[8.3.1, )"
+            },
             "Stripe.net": {
               "target": "Package",
               "version": "[47.3.0, )"

@@ -7,8 +7,13 @@ export default function ClientHome() {
 
   useEffect(() => {
     async function fetchNotifications() {
-      const response = await axios.get('http://localhost:5001/api/PaymentNotifications');
-      setNotifications(response.data);
+      try {
+        const response = await axios.get('http://localhost:5001/api/PaymentNotifications');
+        console.log(response.data); // Verificar la respuesta de la API
+        setNotifications(response.data.notifications); // Extraer la propiedad notifications
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
     }
     fetchNotifications();
   }, []);
