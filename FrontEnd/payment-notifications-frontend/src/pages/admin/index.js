@@ -1,5 +1,16 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Container,
+  Grid,
+  CircularProgress,
+  Alert,
+  Box,
+  Paper
+} from '@mui/material';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -22,11 +33,22 @@ export default function AdminDashboard() {
   }, []);
 
   return (
-    <div>
-      <h1>Dashboard Administrativo</h1>
-      <p>Transacciones Exitosas: {stats.successfulTransactions}</p>
-      <p>Monto Total: {stats.totalAmount}</p>
-      <p>Métodos de Pago Más Utilizados: {stats.mostUsedPaymentMethods.join(', ')}</p>
-    </div>
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Dashboard Administrativo
+      </Typography>
+      <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6">Transacciones Exitosas</Typography>
+        <Typography variant="h4">{stats.successfulTransactions}</Typography>
+      </Paper>
+      <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6">Monto Total</Typography>
+        <Typography variant="h4">€{stats.totalAmount}</Typography>
+      </Paper>
+      <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6">Métodos de Pago Más Utilizados</Typography>
+        <Typography variant="h4">{stats.mostUsedPaymentMethods.join(', ')}</Typography>
+      </Paper>
+    </Container>
   );
 }
