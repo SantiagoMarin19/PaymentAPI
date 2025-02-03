@@ -10,8 +10,13 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     async function fetchStats() {
-      const response = await axios.get('http://localhost:5001/api/PaymentNotifications/stats');
-      setStats(response.data);
+      try {
+        const response = await axios.get('http://localhost:5001/api/PaymentNotifications/stats');
+        console.log(response.data); // Verificar la respuesta de la API
+        setStats(response.data);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
     }
     fetchStats();
   }, []);

@@ -1,22 +1,36 @@
 using Microsoft.EntityFrameworkCore;
 using PaymentNotificationsAPI.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 
 namespace PaymentNotificationsAPI.Data
 {
     public class AppDbContext : DbContext
     {
-        // Representa la tabla PaymentNotifications en la base de datos
-        public DbSet<PaymentNotification> PaymentNotifications { get; set; }
-
-        // Constructor que recibe las opciones de configuración
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        public DbSet<PaymentNotification> PaymentNotifications { get; set; }
+
+        public async Task<int> InsertPaymentNotification(PaymentNotification notification)
         {
-            modelBuilder.Entity<PaymentNotification>(entity =>
+            var parameters = new[]
             {
-                entity.Property(e => e.Monto).HasColumnType("decimal(18,2)");
-            });
+                new SqlParameter("@FechaHora", notification.FechaHora),
+                new SqlParameter("@TransaccionID", notification.TransaccionID),
+                new SqlParameter("@Estado", notification.Estado),
+                new SqlParameter("@Monto", notification.Monto),
+                new SqlParameter("@Banco", notification.Banco),
+                new SqlParameter("@MetodoPago", notification.MetodoPago)
+            };
+
+            return await Database.ExecuteSqlRawAsync("EXEC InsertPaymentNotification @FechaHora, @TransaccionID, @Estado, @Monto, @Banco, @MetodoPago", parameters);
+        }
+
+        public async Task<PaymentNotification> GetPaymentNotificationById(int id)
+        {
+            var parameter = new SqlParameter("@Id", id);
+            return await PaymentNotifications.FromSqlRaw("EXEC GetPaymentNotificationById @Id", parameter).FirstOrDefaultAsync();
         }
     }
 }

@@ -84,7 +84,7 @@ namespace PaymentNotificationsAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetNotificationById(int id)
         {
-            var notification = await _context.PaymentNotifications.FindAsync(id);
+            var notification = await _context.GetPaymentNotificationById(id);
             if (notification == null)
             {
                 return NotFound();
@@ -108,7 +108,7 @@ namespace PaymentNotificationsAPI.Controllers
                 var stripeEvent = EventUtility.ConstructEvent(
                     json,
                     Request.Headers["Stripe-Signature"],
-                    "whsec_iVFPSRyLguRBQ2M8gAvnfQJLOVWwTydq" // Reemplaza con tu WebhookSecret
+                    "whsec_iVFPSRyLguRBQ2M8gAvnfQJLOVWwTydq" 
                 );
 
                 if (stripeEvent.Type == "payment_intent.succeeded")
@@ -130,10 +130,9 @@ namespace PaymentNotificationsAPI.Controllers
                         MetodoPago = paymentIntent.PaymentMethodId
                     };
 
-                    _context.PaymentNotifications.Add(notification);
-                    await _context.SaveChangesAsync();
+                    await _context.InsertPaymentNotification(notification);
+                    await _logService.LogTransactionAsync($"Notificación guardada: {notification.TransaccionID} - Monto: {notification.Monto}");
 
-                    WriteLog("Success", $"Notificación guardada: {notification.TransaccionID} - Monto: {notification.Monto}");
                     return Ok("Notification received successfully.");
                 }
                 else
@@ -170,6 +169,33 @@ namespace PaymentNotificationsAPI.Controllers
                 Console.WriteLine($"No se pudo escribir en el log: {ex.Message}");
             }
         }
+         [HttpGet("stats")]
+        public async Task<IActionResult> GetStats()
+        {
+            var successfulTransactions = await _context.PaymentNotifications
+                .CountAsync(n => n.Estado == "succeeded");
+
+            var totalAmount = await _context.PaymentNotifications
+                .Where(n => n.Estado == "succeeded")
+                .SumAsync(n => n.Monto);
+
+            var mostUsedPaymentMethods = await _context.PaymentNotifications
+                .Where(n => n.Estado == "succeeded")
+                .GroupBy(n => n.MetodoPago)
+                .OrderByDescending(g => g.Count())
+                .Select(g => g.Key)
+                .Take(5)
+                .ToListAsync();
+
+            var stats = new
+            {
+                SuccessfulTransactions = successfulTransactions,
+                TotalAmount = totalAmount,
+                MostUsedPaymentMethods = mostUsedPaymentMethods
+            };
+
+            return Ok(stats);
+        }
 
         // GET: api/PaymentNotifications/testconnection
         [HttpGet("testconnection")]
@@ -188,8 +214,7 @@ namespace PaymentNotificationsAPI.Controllers
                     MetodoPago = "test_method"
                 };
 
-                _context.PaymentNotifications.Add(testNotification);
-                await _context.SaveChangesAsync();
+                await _context.InsertPaymentNotification(testNotification);
 
                 // Eliminar el registro de prueba
                 _context.PaymentNotifications.Remove(testNotification);
