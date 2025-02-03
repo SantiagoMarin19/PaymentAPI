@@ -301,3 +301,6 @@ C:\Users\santi\Desktop\PaymentNotificationsAPI\PaymentProyecto\obj\Debug\net9.0\
 C:\Users\santi\Desktop\PaymentNotificationsAPI\PaymentProyecto\obj\Debug\net9.0\PaymentNotificationsAPI.pdb
 C:\Users\santi\Desktop\PaymentNotificationsAPI\PaymentProyecto\obj\Debug\net9.0\PaymentNotificationsAPI.genruntimeconfig.cache
 C:\Users\santi\Desktop\PaymentNotificationsAPI\PaymentProyecto\obj\Debug\net9.0\ref\PaymentNotificationsAPI.dll
+C:\Users\santi\Desktop\PaymentNotificationsAPI\PaymentProyecto\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\santi\Desktop\PaymentNotificationsAPI\PaymentProyecto\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\santi\Desktop\PaymentNotificationsAPI\PaymentProyecto\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll

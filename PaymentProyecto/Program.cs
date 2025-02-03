@@ -1,8 +1,26 @@
 using Microsoft.EntityFrameworkCore;
 using PaymentNotificationsAPI.Data;
+using Microsoft.OpenApi.Models;
 using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Agregar Servicios para los contenedores
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Configuración CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
+});
 
 // Configurar Stripe
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
@@ -19,7 +37,21 @@ builder.Services.AddLogging();
 
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
 // Habilitar el enrutamiento de controladores
-app.MapControllers(); 
+app.MapControllers();
+
+// Usar CORS
+app.UseCors("AllowAllOrigins");
 
 app.Run();
