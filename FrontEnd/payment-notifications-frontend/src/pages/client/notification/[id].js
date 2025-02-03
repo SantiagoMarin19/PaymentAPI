@@ -11,8 +11,13 @@ export default function NotificationDetailPage() {
   useEffect(() => {
     if (id) {
       async function fetchNotification() {
-        const response = await axios.get(`http://localhost:5001/api/PaymentNotifications/${id}`);
-        setNotification(response.data);
+        try {
+          const response = await axios.get(`http://localhost:5001/api/PaymentNotifications/${id}`);
+          console.log(response.data); // Verificar la respuesta de la API
+          setNotification(response.data);
+        } catch (error) {
+          console.error('Error fetching notification:', error);
+        }
       }
       fetchNotification();
     }

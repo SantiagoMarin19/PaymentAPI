@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PaymentNotificationsAPI.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 
@@ -27,10 +28,14 @@ namespace PaymentNotificationsAPI.Data
             return await Database.ExecuteSqlRawAsync("EXEC InsertPaymentNotification @FechaHora, @TransaccionID, @Estado, @Monto, @Banco, @MetodoPago", parameters);
         }
 
-        public async Task<PaymentNotification> GetPaymentNotificationById(int id)
+        public async Task<PaymentNotification?> GetPaymentNotificationById(int id)
         {
             var parameter = new SqlParameter("@Id", id);
-            return await PaymentNotifications.FromSqlRaw("EXEC GetPaymentNotificationById @Id", parameter).FirstOrDefaultAsync();
+            var notifications = await PaymentNotifications
+                .FromSqlRaw("EXEC GetPaymentNotificationById @Id", parameter)
+                .ToListAsync();
+
+            return notifications.FirstOrDefault();
         }
     }
 }
